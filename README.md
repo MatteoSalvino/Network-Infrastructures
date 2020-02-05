@@ -21,4 +21,4 @@ This is a collection of my Netkit homeworks for Network Infrastructures course h
 * DNS protocol
 * Firewalls
 ### Environment settings
-To launch a Netkit laboratory run `lstart` command for a sequentially launch of the lab's terminals, or `lstart -p0` for a parallel launch. To crash a laboratory run the command `lcrash`.
+To launch a Netkit laboratory run `lstart` command for a sequential launch of the lab's terminals, or `lstart -p0` for a parallel launch. To crash a laboratory run the command `lcrash`.
