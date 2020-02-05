@@ -1,0 +1,14 @@
+$ORIGIN sub.homework.org.
+$TTL 2d
+@ IN SOA ns.sub.homework.org. hostmaster.sub.homework.org. (
+    2012032400 ; serial 
+    28 ; refresh 
+    14 ; retry 
+    3600000 ; expire
+    0 ; negative cache ttl 
+)
+
+@	IN	NS	ns
+ns	IN	A	10.0.1.100
+r8	IN	A	1.0.1.19
+s1	IN	CNAME	ns

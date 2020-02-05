@@ -1,0 +1,13 @@
+/etc/init.d/networking restart
+/etc/init.d/quagga restart
+
+ip r add default via 1.0.1.20
+
+#To make work dns and delegation server
+iptables -A FORWARD -p udp --sport 53 -i eth0 -j ACCEPT
+iptables -A FORWARD -p udp --dport 53 -i eth1 -j ACCEPT
+
+iptables -A FORWARD -p udp -s 10.0.2.100 -d 10.0.1.100 --dport 53 -i eth0 -j ACCEPT
+iptables -A FORWARD -p udp -s 10.0.1.100 -d 10.0.2.100 --sport 53 -i eth1 -j ACCEPT
+
+iptables -P FORWARD DROP

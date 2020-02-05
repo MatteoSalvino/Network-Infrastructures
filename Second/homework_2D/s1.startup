@@ -1,0 +1,63 @@
+/etc/init.d/networking restart
+/etc/init.d/ssh restart
+
+echo -e '\n\n\n' | ssh-keygen
+pwd
+
+cp /root/.ssh/id_rsa.pub /hostlab/s1_key.pub
+
+mkdir /home/user
+useradd user -d /home/user
+chown user:user /home/user
+echo -e 'user\nuser\n' | passwd user
+
+mkdir /home/user/.ssh
+chown user:user /home/user/.ssh
+chmod 700 /home/user/.ssh
+
+touch /home/user/.ssh/authorized_keys
+chown user:user /home/user/.ssh/authorized_keys
+chmod 600 /home/user/.ssh/authorized_keys
+
+until [ -e /hostlab/s2_key.pub ]
+do
+        printf "\033[0;31mUnable to get s2 public key! \033[0m \n"
+        sleep 5
+done
+
+cat /hostlab/s2_key.pub >> /home/user/.ssh/authorized_keys
+printf "\033[0;32mGot s2 public key! \033[0m \n"
+
+echo  "10.0.1.2  pc" >> etc/hosts
+while ! ping -c 1 pc &>/dev/null
+do
+	echo "pc not yet reachable"
+	sleep 2
+done
+
+echo "setting up remote port forwarding"
+ssh -o StrictHostKeyChecking=no -fNR 882:127.0.0.1:8000 user@pc
+
+echo "Setting up vpn"
+cd /usr/share/doc/openvpn/examples/easy-rsa/2.0/
+
+echo "Clean up previous keys and certificates"
+source ./vars
+./clean-all
+
+echo 'Building Certification Authority'
+echo -en '\n\n\n\n\n\n\n' | ./build-ca 
+cp /usr/share/doc/openvpn/examples/easy-rsa/2.0/keys/ca.crt /hostlab/
+
+echo 'Generate keys pair for the server'
+(echo -en '\n\n\n\n\n\n\n'; sleep 1; echo -en '\n'; sleep 1; echo -en '\n'; sleep 3; echo -en 'yes\n'; echo -en 'yes\n';) | ./build-key-server server
+cp /usr/share/doc/openvpn/examples/easy-rsa/2.0/keys/server.key /hostlab/
+cp /usr/share/doc/openvpn/examples/easy-rsa/2.0/keys/server.crt /hostlab/
+
+echo 'Generate keys pair for the client'
+./build-dh
+cp /usr/share/doc/openvpn/examples/easy-rsa/2.0/keys/dh1024.pem /hostlab/
+
+(echo -en '\n\n\n\n\n\n\n'; sleep 1; echo -en '\n'; sleep 1; echo -en '\n'; sleep 3; echo -en 'yes\n'; echo -en 'yes\n';) | ./build-key client
+cp /usr/share/doc/openvpn/examples/easy-rsa/2.0/keys/client.key /hostlab/
+cp /usr/share/doc/openvpn/examples/easy-rsa/2.0/keys/client.crt /hostlab/

@@ -1,0 +1,31 @@
+/etc/init.d/networking restart
+/etc/init.d/ssh restart
+
+echo -e '\n\n\n' | ssh-keygen
+pwd
+
+cp /root/.ssh/id_rsa.pub /hostlab/pc_key.pub
+
+mkdir /home/user
+useradd user -d /home/user
+chown user:user /home/user
+echo -e 'user\nuser\n' | passwd user
+
+mkdir /home/user/.ssh
+chown user:user /home/user/.ssh
+chmod 700 /home/user/.ssh
+
+touch /home/user/.ssh/authorized_keys
+chown user:user /home/user/.ssh/authorized_keys
+chmod 600 /home/user/.ssh/authorized_keys
+
+echo "10.0.1.100 s1" >> etc/hosts
+
+while ! ping -c 1 s1 &>/dev/null
+do
+	echo "s1 not yet reachable"
+	sleep 2
+done
+
+echo "setting up remote port forwarding"
+ssh -o StrictHostKeyChecking=no -fNR 8000:127.0.0.1:9090 user@s1

@@ -1,0 +1,27 @@
+/etc/init.d/networking restart
+/etc/init.d/ssh restart
+
+echo -e '\n\n\n' | ssh-keygen
+pwd
+
+echo "10.0.0.100 s1" >> etc/hosts
+
+cp /root/.ssh/id_rsa.pub /hostlab/s2_key.pub
+
+mkdir /home/user
+useradd user -d /home/user
+chown user:user /home/user
+echo -e 'user\nuser\n' | passwd user
+
+mkdir /home/user/.ssh
+chown user:user /home/user/.ssh
+chmod 700 /home/user/.ssh
+
+touch /home/user/.ssh/authorized_keys
+chown user:user /home/user/.ssh/authorized_keys
+chmod 600 /home/user/.ssh/authorized_keys
+
+until ping -c1 s1 &> /dev/null; do :;done
+
+echo "setting up local port forwarding"
+ssh -o StrictHostKeyChecking=no -fNL 82:127.0.0.1:8000 user@s1 

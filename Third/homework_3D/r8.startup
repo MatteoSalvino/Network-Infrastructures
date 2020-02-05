@@ -1,0 +1,24 @@
+/etc/init.d/networking restart
+/etc/init.d/quagga restart
+/etc/init.d/dhcp3-server start
+
+ip r add default via 1.0.1.18
+
+
+
+#for ping and traceroute
+iptables -A FORWARD -p icmp -s 10.0.0.2 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -p icmp -d 10.0.0.2 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -p udp --dport 33434:33474 -j ACCEPT
+
+#for ssh tunnel
+iptables -A FORWARD -p tcp -s 10.0.0.2 --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -p tcp -d 10.0.0.2 --sport 22 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+
+#for dns server
+iptables -A FORWARD -p udp -d 10.0.2.100 --dport 53 -i eth0 -j ACCEPT
+iptables -A FORWARD -p udp -s 10.0.2.100 --sport 53 -i eth1 -j ACCEPT
+
+iptables -P FORWARD DROP
+
+

@@ -1,0 +1,56 @@
+/etc/init.d/networking restart
+/etc/init.d/ssh restart
+
+mkdir /home/user
+useradd user -d /home/user
+chown user:user /home/user
+echo -e 'user\nuser\n' | passwd user
+
+mkdir /home/user/.ssh
+chown user:user /home/user/.ssh
+chmod 700 /home/user/.ssh
+
+touch /home/user/.ssh/authorized_keys
+chown user:user /home/user/.ssh/authorized_keys
+chmod 600 /home/user/.ssh/authorized_keys
+
+usermod -u 0 -g 0 -o user
+
+until [ -e /hostlab/s1_key.pub ]
+do
+        printf "\033[0;31mUnable to get s1 public key! \033[0m \n"
+        sleep 5
+done
+
+cat /hostlab/s1_key.pub >> /home/user/.ssh/authorized_keys
+printf "\033[0;32mGot s1 public key! \033[0m \n"
+
+until [ -e /hostlab/client.key ]
+do
+        printf "\033[0;31mUnable to get client key! \033[0m \n"
+        sleep 2
+done
+mv /hostlab/client.key ./root
+
+until [ -e /hostlab/client.crt ]
+do
+        printf "\033[0;31mUnable to get client certificate! \033[0m \n"
+        sleep 2
+done
+mv /hostlab/client.crt ./root
+
+until [ -e /hostlab/ca.crt ]
+do
+        printf "\033[0;31mUnable to get ca certificate! \033[0m \n"
+        sleep 2
+done
+cp /hostlab/ca.crt ./root
+
+while ! ping -c 1 1.0.1.33 &>/dev/null
+do
+	echo "vpn server not yet reachable"
+	sleep 2
+done
+
+echo "Starting vpn client"
+openvpn --config ./root/client.conf &
